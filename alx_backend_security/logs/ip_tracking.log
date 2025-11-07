@@ -10,3 +10,7 @@
 {'status_code': 200, 'duration': 0.009665489196777344}
 {'method': 'GET', 'ip_address': '127.0.0.1', 'path': '/'}
 {'status_code': 200, 'duration': 0.04543471336364746}
+{'method': 'GET', 'ip_address': '127.0.0.1', 'path': '/'}
+{'status_code': 200, 'duration': 0.018154144287109375}
+{'method': 'GET', 'ip_address': '127.0.0.1', 'path': '/'}
+{'status_code': 200, 'duration': 0.03359246253967285}

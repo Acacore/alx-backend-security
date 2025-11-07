@@ -202,3 +202,5 @@ AUTHENTICATED_RATE = '10/m'  # 10 requests per minute for logged-in users
 ANONYMOUS_RATE = '5/m'       # 5 requests per minute for anonymous users
 
 
+
+# celery settings 

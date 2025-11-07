@@ -9,11 +9,22 @@ from django_ratelimit.decorators import ratelimit
 
 # Create your views here.
 
+
+def limit_by_auth(view_func):
+    def wrapper(request, *args, **kwargs):
+        rate = '10/m' if request.user.is_authenticated else '5/m'
+        decorator = ratelimit(key='user_or_ip', rate=rate, block=True)
+        return decorator(view_func)(request, *args, **kwargs)
+    return wrapper
+
+
+
 def home(request):
     return render(request, "ip_tracking/home.html")
 
 
 @csrf_exempt  # only if you're testing locally, not in production
+@limit_by_auth
 @ratelimit(key='user_or_ip', rate='10/m', method='POST', block=True)
 def login_view(request):
     if request.method == "POST":
@@ -30,9 +41,4 @@ def login_view(request):
 
 
 
-def limit_by_auth(view_func):
-    def wrapper(request, *args, **kwargs):
-        rate = '10/m' if request.user.is_authenticated else '5/m'
-        decorator = ratelimit(key='user_or_ip', rate=rate, block=True)
-        return decorator(view_func)(request, *args, **kwargs)
-    return wrapper
+
