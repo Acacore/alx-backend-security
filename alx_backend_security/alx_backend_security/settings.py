@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+print("DJANGO_AUTORELOAD_MODE =", os.getenv("DJANGO_AUTORELOAD_MODE"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,7 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'ip_tracking'
+    'ip_tracking',
+    'allauth',
+    'allauth.account',
+    # Optional -- requires install using `django-allauth[socialaccount]`.
+    'allauth.socialaccount',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
+    'ip_tracking.middleware.logging.LoggingMiddleware',
+    'ip_tracking.middleware.logging.BlockedIPMiddleware',
 ]
 
 ROOT_URLCONF = 'alx_backend_security.urls'
@@ -121,3 +132,73 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# your_project_name/settings.py
+# ... other settings ...
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Or your Redis server URL
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' # Optional, for storing task results
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' # Or your desired timezone
+
+AUTHENTICATION_BACKENDS = [
+
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+    
+]
+AUTH_USER_MODEL = 'ip_tracking.Profile'
+
+
+
+# Logging
+
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)  # ✅ ensures folder exists
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+        'django_file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'django.log')
+        },
+        'custom_file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'ip_tracking.log'),
+        },
+    },
+    'loggers': {
+        'django': {  # Django internal logs
+            'handlers': ['django_file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'ip_tracking': {  # your custom app logs
+            'handlers': ['custom_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+
+
+# Rate limiting configuration
+RATELIMIT_USE_CACHE = 'default'  # Uses Django’s default cache backend
+RATELIMIT_VIEW = 'ip_tracking.views.rate_limit_exceeded'  # Custom handler (optional)
+
+AUTHENTICATED_RATE = '10/m'  # 10 requests per minute for logged-in users
+ANONYMOUS_RATE = '5/m'       # 5 requests per minute for anonymous users
+
+

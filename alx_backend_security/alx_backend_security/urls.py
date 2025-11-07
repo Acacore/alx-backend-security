@@ -15,8 +15,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('ip_tracking.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        '/favicon.ico',
+        document_root=os.path.join(settings.BASE_DIR, 'static/favicon.ico')
+    )
